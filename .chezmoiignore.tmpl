@@ -9,6 +9,9 @@ LICENSE
 # Scripts directory (handled separately)
 scripts/
 
+# System-level scripts (installed via run scripts, not to ~/)
+system-files/
+
 {{- if not .isLinux }}
 # Linux-only configurations (ignore on macOS)
 .config/ghostty/

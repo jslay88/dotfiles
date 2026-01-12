@@ -1,0 +1,31 @@
+{{- if .isLinux -}}
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║              Install System Scripts (requires sudo)                      ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+# This script installs system-level scripts.
+# Runs when the script content changes (run_onchange_).
+#
+# Managed by chezmoi - https://chezmoi.io
+
+# Script hash (change triggers re-run): {{ include "system-files/update-mirrorlist" | sha256sum }}
+
+set -e
+
+CHEZMOI_SOURCE="{{ .chezmoi.sourceDir }}"
+
+echo "🔧 Installing system scripts..."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Install update-mirrorlist script
+# ─────────────────────────────────────────────────────────────────────────────
+
+echo "📦 Installing /usr/local/bin/update-mirrorlist..."
+sudo install -m 755 "$CHEZMOI_SOURCE/system-files/update-mirrorlist" /usr/local/bin/update-mirrorlist
+
+# Run with --install to set up cron job
+sudo /usr/local/bin/update-mirrorlist --install
+
+echo ""
+echo "✅ System scripts installed!"
+{{- end }}

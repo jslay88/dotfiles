@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# update-mirrorlist
+# Safe Arch Linux mirrorlist updater using reflector
+# Only overwrites the real mirrorlist if a valid new one is generated
+# Logs to /var/log/mirrorlist-update.log
+#
+# Usage:
+#   sudo update-mirrorlist           # Run mirrorlist update
+#   sudo update-mirrorlist --install # Install cron job and run update
+
+set -e
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+LOGFILE="/var/log/mirrorlist-update.log"
+MIRRORLIST="/etc/pacman.d/mirrorlist"
+SCRIPT_PATH="/usr/local/bin/update-mirrorlist"
+CRON_JOB="*/30 * * * * $SCRIPT_PATH"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Check for root
+# ─────────────────────────────────────────────────────────────────────────────
+
+if [[ $EUID -ne 0 ]]; then
+    echo "Error: This script must be run as root (use sudo)" >&2
+    exit 1
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Handle --install flag
+# ─────────────────────────────────────────────────────────────────────────────
+
+if [[ "$1" == "--install" ]]; then
+    echo "📅 Setting up cron job..."
+    
+    if crontab -l 2>/dev/null | grep -qF "$SCRIPT_PATH"; then
+        echo "✅ Cron job already exists"
+    else
+        (
+            crontab -l 2>/dev/null || true
+            if ! crontab -l 2>/dev/null | grep -q '^PATH='; then
+                echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+                echo ""
+            fi
+            echo "$CRON_JOB"
+        ) | crontab -
+        echo "✅ Cron job installed: $CRON_JOB"
+    fi
+    
+    echo ""
+    echo "Running initial mirrorlist update..."
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Update mirrorlist
+# ─────────────────────────────────────────────────────────────────────────────
+
+TMPFILE=$(mktemp) || { echo "$(date): Failed to create temp file" >> "$LOGFILE"; exit 1; }
+
+echo "$(date): Starting mirrorlist update" >> "$LOGFILE"
+
+# Reflector options:
+# --country 'United States' : limit to US mirrors
+# --latest 20               : consider the 20 most recently synced mirrors
+# --protocol https          : only HTTPS mirrors
+# --sort rate               : sort by download speed
+# --number 5                : keep the top 5 fastest
+
+if /usr/bin/reflector \
+    --country 'United States' \
+    --protocol https \
+    --latest 20 \
+    --sort rate \
+    --number 5 \
+    --save "$TMPFILE" \
+    >> "$LOGFILE" 2>&1; then
+
+    # Basic validity check: file non-empty and contains at least one Server line
+    if [ -s "$TMPFILE" ] && grep -q '^Server =' "$TMPFILE"; then
+        cp "$MIRRORLIST" "${MIRRORLIST}.bak" 2>/dev/null
+        install -m 644 "$TMPFILE" "$MIRRORLIST"
+        echo "$(date): Mirrorlist successfully updated" >> "$LOGFILE"
+        rm -f "$TMPFILE"
+        echo "✅ Mirrorlist updated successfully"
+        exit 0
+    else
+        echo "$(date): Generated mirrorlist invalid or empty - keeping old one" >> "$LOGFILE"
+    fi
+else
+    echo "$(date): Reflector failed - keeping old mirrorlist" >> "$LOGFILE"
+fi
+
+rm -f "$TMPFILE"
+echo "⚠️  Mirrorlist update failed (see $LOGFILE)"
+exit 1

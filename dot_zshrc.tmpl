@@ -1,5 +1,5 @@
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║                         ZSH Configuration (No OMZ)                       ║
+# ║                             ZSH Configuration                            ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 # Managed by chezmoi - https://chezmoi.io
 # Machine: {{ .chezmoi.hostname }} | Type: {{ .machineType }} | OS: {{ .osType }}
@@ -143,7 +143,8 @@ alias zshconfig="nvim ~/.zshrc"
 {{- if .isLinux }}
 alias ghostty-config="nvim ~/.config/ghostty/config"
 {{- end }}
-alias ll="ls -lah --color=auto"
+alias ls="ls -ah --color=auto"
+alias ll="ls -l"
 alias watch="$(which watch) "
 alias kc="$(which kubectl)"
 alias vi="$(which nvim)"
@@ -153,7 +154,7 @@ alias pbcopy="$(which wl-copy)"
 alias brave="$(which brave) --password-store=kwallet6"
 {{- end }}
 
-# Git aliases (replacing oh-my-zsh git plugin essentials)
+# Git aliases
 alias g='git'
 alias ga='git add .'
 alias gaa='git add --all'

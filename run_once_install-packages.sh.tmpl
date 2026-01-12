@@ -36,6 +36,7 @@ if command -v pacman &> /dev/null; then
         git-lfs
         age
         gnupg
+        pinentry
         ripgrep
         fd
         fzf
@@ -47,6 +48,7 @@ if command -v pacman &> /dev/null; then
         wget
         unzip
         perl  # For zsh theme duration tracking
+        ghostty
     )
     
     # Check which packages need installing
@@ -90,6 +92,7 @@ PACKAGES=(
     git-lfs
     age
     gnupg
+    pinentry-mac
     ripgrep
     fd
     fzf
@@ -100,6 +103,7 @@ PACKAGES=(
     curl
     wget
     perl
+    ghostty
 )
 
 brew install "${PACKAGES[@]}" || echo "⚠️  Some packages failed to install"

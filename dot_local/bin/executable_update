@@ -1,0 +1,6 @@
+#!/bin/bash
+{{- if .isLinux }}
+yay --noconfirm
+flatpak upgrade --noninteractive
+{{- end }}
+brew update && brew upgrade
