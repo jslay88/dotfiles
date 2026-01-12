@@ -1,0 +1,215 @@
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║                         ZSH Configuration (No OMZ)                       ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+# Managed by chezmoi - https://chezmoi.io
+# Machine: {{ .chezmoi.hostname }} | Type: {{ .machineType }} | OS: {{ .osType }}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ZSH Options
+# ─────────────────────────────────────────────────────────────────────────────
+setopt AUTO_CD              # cd by typing directory name
+setopt INTERACTIVE_COMMENTS # Allow comments in interactive mode
+setopt HIST_IGNORE_DUPS     # Don't record duplicates in history
+setopt HIST_IGNORE_SPACE    # Don't record commands starting with space
+setopt SHARE_HISTORY        # Share history between sessions
+setopt APPEND_HISTORY       # Append to history file
+setopt INC_APPEND_HISTORY   # Add commands immediately
+setopt EXTENDED_HISTORY     # Record timestamp
+setopt HIST_VERIFY          # Show substituted command before running
+setopt CORRECT              # Spelling correction for commands
+
+# History configuration
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Directory Structure
+# ─────────────────────────────────────────────────────────────────────────────
+ZSH_DIR="$HOME/.zsh"
+ZSH_PLUGINS="$ZSH_DIR/plugins"
+ZSH_THEMES="$ZSH_DIR/themes"
+ZSH_SECRETS="$ZSH_DIR/secrets"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Completion System
+# ─────────────────────────────────────────────────────────────────────────────
+autoload -Uz compinit
+# Add custom completions to fpath
+fpath=($ZSH_PLUGINS/zsh-completions/src $fpath)
+{{- if .isLinux }}
+fpath+=(/home/linuxbrew/.linuxbrew/share/zsh/site-functions)
+{{- else if .isMacOS }}
+fpath+=(/opt/homebrew/share/zsh/site-functions)
+{{- end }}
+
+# Initialize completions (cache for speed)
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
+    compinit
+else
+    compinit -C
+fi
+
+# Completion styling
+zstyle ':completion:*' menu select                       # Menu-driven completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' # Case insensitive
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"  # Colored completions
+zstyle ':completion:*:descriptions' format '%F{cyan}-- %d --%f'
+zstyle ':completion:*:warnings' format '%F{red}-- no matches --%f'
+zstyle ':completion:*' group-name ''                     # Group by category
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Key Bindings
+# ─────────────────────────────────────────────────────────────────────────────
+# Use zkbd for terminal-agnostic key bindings
+autoload zkbd
+typeset -g -A key
+
+# Load zkbd configuration if it exists
+if [[ -f ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${${DISPLAY:t}:-$VENDOR-$OSTYPE} ]]; then
+    source ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${${DISPLAY:t}:-$VENDOR-$OSTYPE}
+fi
+
+# Fallback key bindings (work in most terminals)
+bindkey -e  # Emacs mode
+
+# Navigation
+bindkey '^[[H'    beginning-of-line      # Home
+bindkey '^[[F'    end-of-line            # End
+bindkey '^[[1~'   beginning-of-line      # Home (alt)
+bindkey '^[[4~'   end-of-line            # End (alt)
+bindkey '^[[3~'   delete-char            # Delete
+bindkey '^[[5~'   up-line-or-history     # PageUp
+bindkey '^[[6~'   down-line-or-history   # PageDown
+bindkey '^[[A'    up-line-or-search      # Up arrow (search history)
+bindkey '^[[B'    down-line-or-search    # Down arrow (search history)
+bindkey '^[[C'    forward-char           # Right
+bindkey '^[[D'    backward-char          # Left
+bindkey '^[[1;5C' forward-word           # Ctrl+Right
+bindkey '^[[1;5D' backward-word          # Ctrl+Left
+
+# zkbd bindings (if available)
+[[ -n ${key[Backspace]} ]] && bindkey "${key[Backspace]}" backward-delete-char
+[[ -n ${key[Insert]} ]]    && bindkey "${key[Insert]}" overwrite-mode
+[[ -n ${key[Home]} ]]      && bindkey "${key[Home]}" beginning-of-line
+[[ -n ${key[PageUp]} ]]    && bindkey "${key[PageUp]}" up-line-or-history
+[[ -n ${key[Delete]} ]]    && bindkey "${key[Delete]}" delete-char
+[[ -n ${key[End]} ]]       && bindkey "${key[End]}" end-of-line
+[[ -n ${key[PageDown]} ]]  && bindkey "${key[PageDown]}" down-line-or-history
+[[ -n ${key[Up]} ]]        && bindkey "${key[Up]}" up-line-or-search
+[[ -n ${key[Left]} ]]      && bindkey "${key[Left]}" backward-char
+[[ -n ${key[Down]} ]]      && bindkey "${key[Down]}" down-line-or-search
+[[ -n ${key[Right]} ]]     && bindkey "${key[Right]}" forward-char
+
+# Numpad bindings
+bindkey -s "^[Op" "0"
+bindkey -s "^[On" "."
+bindkey -s "^[OM" "^M"
+bindkey -s "^[Oq" "1"
+bindkey -s "^[Or" "2"
+bindkey -s "^[Os" "3"
+bindkey -s "^[Ot" "4"
+bindkey -s "^[Ou" "5"
+bindkey -s "^[Ov" "6"
+bindkey -s "^[Ow" "7"
+bindkey -s "^[Ox" "8"
+bindkey -s "^[Oy" "9"
+bindkey -s "^[Ol" "+"
+bindkey -s "^[OS" "-"
+bindkey -s "^[OR" "*"
+bindkey -s "^[OQ" "/"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Theme / Prompt
+# ─────────────────────────────────────────────────────────────────────────────
+source "$ZSH_THEMES/gallois.zsh"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Plugins
+# ─────────────────────────────────────────────────────────────────────────────
+# Autosuggestions (fish-like suggestions)
+[[ -f "$ZSH_PLUGINS/zsh-autosuggestions/zsh-autosuggestions.zsh" ]] && \
+    source "$ZSH_PLUGINS/zsh-autosuggestions/zsh-autosuggestions.zsh"
+
+# Syntax highlighting (load last for best results)
+# Install with: git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh/plugins/zsh-syntax-highlighting
+[[ -f "$ZSH_PLUGINS/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] && \
+    source "$ZSH_PLUGINS/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Aliases
+# ─────────────────────────────────────────────────────────────────────────────
+alias zshconfig="nvim ~/.zshrc"
+{{- if .isLinux }}
+alias ghostty-config="nvim ~/.config/ghostty/config"
+{{- end }}
+{{- if .isMacOS }}
+alias ls="ls -G"
+{{- else }}
+alias ll="ls -lah --color=auto"
+{{- end }}
+alias watch="$(which watch) "
+alias kc="$(which kubectl)"
+alias vi="$(which nvim)"
+alias vim="$(which nvim)"
+{{- if .isLinux }}
+alias pbcopy="$(which wl-copy)"
+alias brave="$(which brave) --password-store=kwallet6"
+{{- end }}
+
+# Git aliases (replacing oh-my-zsh git plugin essentials)
+alias g='git'
+alias ga='git add .'
+alias gaa='git add --all'
+alias gc='git commit -v'
+alias gcm='git commit -m'
+alias gco='git checkout'
+alias gd='git diff'
+alias gf='git fetch'
+alias gl='git pull'
+alias gp='git push'
+alias gst='git status'
+alias gb='git branch'
+alias glog='git log --oneline --decorate --graph'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Tool Completions & Integrations
+# ─────────────────────────────────────────────────────────────────────────────
+# Kubectl completions
+[[ -x /usr/bin/kubectl ]] && source <(kubectl completion zsh)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Environment Variables
+# ─────────────────────────────────────────────────────────────────────────────
+export ASDF_DATA_DIR="$HOME/.asdf"
+{{- if .isLinux }}
+export PATH="$HOME/.local/bin:$ASDF_DATA_DIR/shims:/home/linuxbrew/.linuxbrew/bin:$PATH"
+{{- else if .isMacOS }}
+export PATH="$HOME/.local/bin:$ASDF_DATA_DIR/shims:/opt/homebrew/bin:$PATH"
+{{- end }}
+export GPG_TTY=$(tty)
+export EDITOR="$(which nvim)"
+{{- if .isLinux }}
+export LIBVIRT_DEFAULT_URI='qemu:///system'
+{{- end }}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Machine-Specific Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+{{- if .isDesktop }}
+# Desktop-specific settings
+{{- else if .isLaptop }}
+# Laptop-specific settings (battery-conscious, etc.)
+{{- else if .isMacMini }}
+# Mac Mini-specific settings
+{{- end }}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Secrets (loaded from local files, not committed to dotfiles repo)
+# ─────────────────────────────────────────────────────────────────────────────
+# Source all secret files if the directory exists and has files
+if [[ -d "$ZSH_SECRETS" ]]; then
+    for secret_file in "$ZSH_SECRETS"/*(.N); do
+        source "$secret_file"
+    done
+fi

@@ -1,0 +1,42 @@
+# Git Configuration
+# Managed by chezmoi - https://chezmoi.io
+
+[init]
+    defaultBranch = main
+
+[commit]
+{{- if .personalSigningKey }}
+    gpgsign = true
+{{- else }}
+    gpgsign = false
+{{- end }}
+
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+
+[include]
+    path = {{ .chezmoi.homeDir }}/.gitconfig-personal
+
+{{- if .hasWorkConfig }}
+
+[includeIf "gitdir:{{ .workDir }}/"]
+    path = {{ .chezmoi.homeDir }}/.gitconfig-work
+{{- end }}
+
+[core]
+    excludesfile = {{ .chezmoi.homeDir }}/.gitignore
+{{- if .isMacOS }}
+    # macOS-specific settings
+    editor = nvim
+{{- else }}
+    editor = nvim
+{{- end }}
+
+[push]
+    autoSetupRemote = true
+
+[pull]
+    rebase = false

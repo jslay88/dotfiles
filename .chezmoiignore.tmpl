@@ -1,0 +1,25 @@
+# Chezmoi Ignore File
+# Files listed here will not be managed by chezmoi
+# Supports glob patterns and Go templates
+
+# README files (informational only)
+README.md
+LICENSE
+
+# Scripts directory (handled separately)
+scripts/
+
+{{- if not .isLinux }}
+# Linux-only configurations (ignore on macOS)
+.config/ghostty/
+{{- end }}
+
+{{- if not .hasWorkConfig }}
+# Work config only if enabled
+.gitconfig-work
+{{- end }}
+
+# Never manage these
+.zsh/plugins/zsh-autosuggestions/
+.zsh/plugins/zsh-syntax-highlighting/
+.zsh/plugins/zsh-completions/

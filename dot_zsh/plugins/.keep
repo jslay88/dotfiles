@@ -1,0 +1,6 @@
+# Placeholder - ZSH plugins are installed via the bootstrap script
+# The following plugins should be cloned here:
+#
+# git clone https://github.com/zsh-users/zsh-autosuggestions
+# git clone https://github.com/zsh-users/zsh-syntax-highlighting
+# git clone https://github.com/zsh-users/zsh-completions

@@ -1,0 +1,9 @@
+# Personal Git Configuration
+# Managed by chezmoi - https://chezmoi.io
+
+[user]
+    name = {{ .personalName }}
+    email = {{ .personalEmail }}
+{{- if .personalSigningKey }}
+    signingkey = {{ .personalSigningKey }}
+{{- end }}

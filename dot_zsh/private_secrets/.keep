@@ -1,0 +1,9 @@
+# Secrets directory - files placed here will be sourced by .zshrc
+# 
+# This directory is intentionally empty in the dotfiles repo.
+# Add your secret environment variables in files here, e.g.:
+#
+#   echo 'export MY_API_KEY="your-secret-key"' > ~/.zsh/secrets/api_keys.secret
+#
+# All files in this directory are sourced automatically by .zshrc
+# NEVER commit actual secrets to the dotfiles repository!

@@ -1,0 +1,161 @@
+#!/bin/bash
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║                    Bootstrap Script for New Machines                     ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+# This script runs ONCE when chezmoi apply is first run on a new machine.
+# It installs essential packages and sets up the environment.
+#
+# Managed by chezmoi - https://chezmoi.io
+
+set -e  # Exit on error
+
+echo "╔══════════════════════════════════════════════════════════════════════════╗"
+echo "║                     Dotfiles Bootstrap Script                            ║"
+echo "╚══════════════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "OS: {{ .osType }}"
+echo "Machine: {{ .machineType }}"
+echo "Hostname: {{ .chezmoi.hostname }}"
+echo ""
+
+{{ if .isLinux -}}
+# ─────────────────────────────────────────────────────────────────────────────
+# Linux (Arch) Setup
+# ─────────────────────────────────────────────────────────────────────────────
+
+echo "🐧 Setting up Linux environment..."
+
+# Check if we're on Arch
+if command -v pacman &> /dev/null; then
+    echo "📦 Installing packages via pacman..."
+    
+    # Core packages
+    PACKAGES=(
+        neovim
+        git
+        git-lfs
+        age
+        gnupg
+        ripgrep
+        fd
+        fzf
+        jq
+        yq
+        htop
+        btop
+        curl
+        wget
+        unzip
+        perl  # For zsh theme duration tracking
+    )
+    
+    # Check which packages need installing
+    TO_INSTALL=()
+    for pkg in "${PACKAGES[@]}"; do
+        if ! pacman -Qi "$pkg" &> /dev/null; then
+            TO_INSTALL+=("$pkg")
+        fi
+    done
+    
+    if [ ${#TO_INSTALL[@]} -gt 0 ]; then
+        echo "Installing: ${TO_INSTALL[*]}"
+        sudo pacman -S --noconfirm "${TO_INSTALL[@]}" || echo "⚠️  Some packages failed to install (may need manual intervention)"
+    else
+        echo "✅ All core packages already installed"
+    fi
+fi
+
+{{ else if .isMacOS -}}
+# ─────────────────────────────────────────────────────────────────────────────
+# macOS Setup
+# ─────────────────────────────────────────────────────────────────────────────
+
+echo "🍎 Setting up macOS environment..."
+
+# Install Homebrew if not present
+if ! command -v brew &> /dev/null; then
+    echo "🍺 Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    
+    # Add Homebrew to PATH for this script
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+echo "📦 Installing packages via Homebrew..."
+
+# Core packages
+PACKAGES=(
+    neovim
+    git
+    git-lfs
+    age
+    gnupg
+    ripgrep
+    fd
+    fzf
+    jq
+    yq
+    htop
+    btop
+    curl
+    wget
+    perl
+)
+
+brew install "${PACKAGES[@]}" || echo "⚠️  Some packages failed to install"
+
+{{ end -}}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Common Setup (All Platforms)
+# ─────────────────────────────────────────────────────────────────────────────
+
+echo ""
+echo "🔧 Setting up common tools..."
+
+# Install asdf if not present
+if ! command -v asdf &> /dev/null; then
+    echo "📦 Installing asdf..."
+    git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.18.0
+    echo "⚠️  asdf installed - please restart your shell and re-run chezmoi apply"
+fi
+
+# Set up ZSH plugins directory
+ZSH_PLUGINS="$HOME/.zsh/plugins"
+mkdir -p "$ZSH_PLUGINS"
+
+# Clone ZSH plugins if not present
+if [ ! -d "$ZSH_PLUGINS/zsh-autosuggestions" ]; then
+    echo "📦 Installing zsh-autosuggestions..."
+    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_PLUGINS/zsh-autosuggestions"
+fi
+
+if [ ! -d "$ZSH_PLUGINS/zsh-syntax-highlighting" ]; then
+    echo "📦 Installing zsh-syntax-highlighting..."
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_PLUGINS/zsh-syntax-highlighting"
+fi
+
+if [ ! -d "$ZSH_PLUGINS/zsh-completions" ]; then
+    echo "📦 Installing zsh-completions..."
+    git clone https://github.com/zsh-users/zsh-completions "$ZSH_PLUGINS/zsh-completions"
+fi
+
+# Create secrets directory
+mkdir -p "$HOME/.zsh/secrets"
+
+# Set up Git LFS
+if command -v git-lfs &> /dev/null; then
+    echo "🔧 Setting up Git LFS..."
+    git lfs install --skip-repo
+fi
+
+echo ""
+echo "╔══════════════════════════════════════════════════════════════════════════╗"
+echo "║                     ✅ Bootstrap Complete!                               ║"
+echo "╚══════════════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "Next steps:"
+echo "  1. Restart your shell or run: source ~/.zshrc"
+echo "  2. Add any secrets to ~/.zsh/secrets/"
+echo "  3. Import your GPG keys if needed"
+echo ""

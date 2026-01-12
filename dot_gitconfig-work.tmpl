@@ -1,0 +1,15 @@
+{{- if .hasWorkConfig -}}
+# Work Git Configuration
+# Managed by chezmoi - https://chezmoi.io
+# Applied for repositories in {{ .workDir }}
+
+[user]
+    name = {{ .workName }}
+    email = {{ .workEmail }}
+{{- if .workSigningKey }}
+    signingkey = {{ .workSigningKey }}
+{{- end }}
+
+[init]
+    defaultBranch = main
+{{- end }}
