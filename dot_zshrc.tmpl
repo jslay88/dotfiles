@@ -143,11 +143,7 @@ alias zshconfig="nvim ~/.zshrc"
 {{- if .isLinux }}
 alias ghostty-config="nvim ~/.config/ghostty/config"
 {{- end }}
-{{- if .isMacOS }}
-alias ls="ls -G"
-{{- else }}
 alias ll="ls -lah --color=auto"
-{{- end }}
 alias watch="$(which watch) "
 alias kc="$(which kubectl)"
 alias vi="$(which nvim)"
