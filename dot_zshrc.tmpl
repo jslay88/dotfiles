@@ -27,9 +27,12 @@ SAVEHIST=10000
 # Directory Structure
 # ─────────────────────────────────────────────────────────────────────────────
 ZSH_DIR="$HOME/.zsh"
+ZSH_CACHE_DIR="$HOME/.cache/zsh"
 ZSH_PLUGINS="$ZSH_DIR/plugins"
 ZSH_THEMES="$ZSH_DIR/themes"
 ZSH_SECRETS="$ZSH_DIR/secrets"
+
+mkdir -p $ZSH_DIR $ZSH_CACHE_DIR $ZSH_PLUGINS $ZSH_THEMES $ZSH_SECRETS
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Completion System
@@ -136,16 +139,20 @@ source "$ZSH_THEMES/gallois.zsh"
 [[ -f "$ZSH_PLUGINS/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] && \
     source "$ZSH_PLUGINS/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
+# Dotenv
+[[ -f "$ZSH_PLUGINS/dotenv/dotenv.plugin.zsh" ]] && \
+    source "$ZSH_PLUGINS/dotenv/dotenv.plugin.zsh"
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Aliases
 # ─────────────────────────────────────────────────────────────────────────────
-alias zshconfig="nvim ~/.zshrc"
+alias watch="$(which watch) "
+alias zshconfig="chezmoi edit ~/.zshrc"
 {{- if .isLinux }}
 alias ghostty-config="nvim ~/.config/ghostty/config"
 {{- end }}
 alias ls="ls -ah --color=auto"
 alias ll="ls -l"
-alias watch="$(which watch) "
 alias kc="$(which kubectl)"
 alias vi="$(which nvim)"
 alias vim="$(which nvim)"
